@@ -8,7 +8,8 @@ def get_image_paths(root):
     results = []
     for root, dirnames, filenames in os.walk(root):
         for filename in fnmatch.filter(filenames, '*.png'):
-            results.append(os.path.join(root, filename))
+            if "@" not in filename:
+                results.append(os.path.join(root, filename))
     return results
 
 
@@ -45,6 +46,18 @@ def get_properties(nodes, level):
     return result
 
 
+def get_enum(key, values, level):
+    indent = get_indent(level)
+    name = key.replace("_", " ").title().replace(" ", "")
+    result = "%spublic enum %sState\n%s{\n" % (indent, name, indent)
+    for value in values:
+        result += get_indent(level + 1) + value.title() + ","
+        result += "\n"
+    result = result[:-2] + "\n"
+    result += "%s}\n" % indent
+    return result
+
+
 def get_method_head(key, values, level):
     name = key.replace("_", " ").title().replace(" ", "")
     return "public static File Get%sFile(%sState state)" % (name, name)
@@ -55,10 +68,20 @@ def get_method_body(key, values, level):
     result = ""
     result += "%sswitch(state)\n%s{\n" % (indent, indent)
     for value in values:
-        result += "%scase %s:\n" % (get_indent(level + 1), value.title())
-        result += "%sreturn \"%s\";\n" % (get_indent(level + 2), "x")
+        result += "%scase %s:\n" \
+            % (get_indent(level + 1), value.title())
+        result += "%sreturn \"%s\";\n" \
+            % (get_indent(level + 2), key + "-" + value)
     result += "%s}" % (indent)
     return result
+
+
+def get_method(key, values, level):
+    indent = get_indent(level)
+    head = get_method_head(key, values, level)
+    body = get_method_body(key, values, level + 1)
+    return "%s%s\n%s{\n%s\n%s}" % \
+        (indent, head, indent, body, indent)
 
 
 def get_methods(nodes, level):
@@ -72,16 +95,13 @@ def get_methods(nodes, level):
         states = methods_group.get(head)
         if not states:
             methods_group[head] = [tail]
-        else:
-            if tail not in states:
-                states.append(tail)
+        elif tail not in states:
+            states.append(tail)
     result = ""
-    indent = get_indent(level)
     for key, values in methods_group.iteritems():
-        head = get_method_head(key, values, level)
-        body = get_method_body(key, values, level + 1)
-        result += "%s%s\n%s{\n%s\n%s}\n" % \
-            (indent, head, indent, body, indent)
+        result += get_enum(key, values, level)
+        result += get_method(key, values, level)
+        result += "\n"
     return result
 
 
@@ -94,6 +114,9 @@ def get_class(root, tree, level):
                 leafs.append(node)
             else:
                 sub_trees.append(node)
+    # flatten to subtree
+    if len(leafs) == 0 and len(sub_trees) == 1:
+        return get_class(sub_trees[0], tree, level)
     indent = get_indent(level)
     result = "%spublic static class %s\n%s{\n" % (indent, root, indent)
     for node in sub_trees:
@@ -114,11 +137,13 @@ def get_source(root_name, root, tree):
     return result
 
 
-print "Working in [%s]...\n" % (os.getcwd())
+print "Working in [%s]..." % (os.getcwd())
 
-root = "../"
+root = "."
 tree = get_tree(root)
 source = get_source("Images", root, tree)
-print source
+output_file = open("Images.cs", "w")
+output_file.write(source)
+output_file.close()
 
-print "\nDone."
+print "Done."
