@@ -149,9 +149,10 @@ def write_source(root, source):
 
 print "Working in [%s]..." % (os.getcwd())
 
-root = "."
-tree = get_tree(root)
-source = get_source("Images", root, tree)
-write_source(root, source)
+input_root = "."
+output_root = "."
+tree = get_tree(input_root)
+source = get_source("Images", input_root, tree)
+write_source(output_root, source)
 
 print "Done."
