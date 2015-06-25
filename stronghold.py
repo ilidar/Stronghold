@@ -137,13 +137,21 @@ def get_source(root_name, root, tree):
     return result
 
 
+def write_source(root, source):
+    build_dir = os.path.join(root, "build")
+    if not os.path.exists(build_dir):
+        os.makedirs(build_dir)
+    output_file_path = os.path.join(build_dir, "Images.cs")
+    output_file = open(output_file_path, "w")
+    output_file.write(source)
+    output_file.close()
+
+
 print "Working in [%s]..." % (os.getcwd())
 
 root = "."
 tree = get_tree(root)
 source = get_source("Images", root, tree)
-output_file = open("Images.cs", "w")
-output_file.write(source)
-output_file.close()
+write_source(root, source)
 
 print "Done."
