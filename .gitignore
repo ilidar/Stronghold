@@ -25,3 +25,6 @@ Pods
 
 # Carthage
 Carthage/Build
+
+# Sublime Text
+*.sublime-workspace
