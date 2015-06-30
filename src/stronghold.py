@@ -147,12 +147,17 @@ def write_source(root, source):
     output_file.close()
 
 
-print "Working in [%s]..." % (os.getcwd())
+def main():
+    print "Working in [%s]..." % (os.getcwd())
 
-input_root = "."
-output_root = "."
-tree = get_tree(input_root)
-source = get_source("Images", input_root, tree)
-write_source(output_root, source)
+    input_root = "."
+    output_root = "."
+    tree = get_tree(input_root)
+    source = get_source("Images", input_root, tree)
+    write_source(output_root, source)
 
-print "Done."
+    print "Done."
+
+
+if __name__ == "__main__":
+    main()
